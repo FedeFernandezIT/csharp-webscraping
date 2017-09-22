@@ -42,7 +42,7 @@ namespace CefSharp.MinimalExample.WinForms
 
             var bitness = Environment.Is64BitProcess ? "x64" : "x86";
             var version = String.Format("Chromium: {0}, CEF: {1}, CefSharp: {2}, Environment: {3}", Cef.ChromiumVersion, Cef.CefVersion, Cef.CefSharpVersion, bitness);
-            DisplayOutput(version);
+            DisplayOutput(version);            
         }
 
         private void OnFrameLoadEnded(object sender, FrameLoadEndEventArgs e)
@@ -75,30 +75,30 @@ namespace CefSharp.MinimalExample.WinForms
 
         private void OnBrowserAddressChanged(object sender, AddressChangedEventArgs args)
         {
-            this.InvokeOnUiThreadIfRequired(() => urlTextBox.Text = args.Address);
+            //this.InvokeOnUiThreadIfRequired(() => urlTextBox.Text = args.Address);
         }
 
         private void SetCanGoBack(bool canGoBack)
         {
-            this.InvokeOnUiThreadIfRequired(() => backButton.Enabled = canGoBack);
+            //this.InvokeOnUiThreadIfRequired(() => backButton.Enabled = canGoBack);
         }
 
         private void SetCanGoForward(bool canGoForward)
         {
-            this.InvokeOnUiThreadIfRequired(() => forwardButton.Enabled = canGoForward);
+            //this.InvokeOnUiThreadIfRequired(() => forwardButton.Enabled = canGoForward);
         }
 
         private void SetIsLoading(bool isLoading)
         {
-            goButton.Text = isLoading ?
-                "Stop" :
-                "Go";
-            goButton.Image = isLoading ?
-                Properties.Resources.nav_plain_red :
-                Properties.Resources.nav_plain_green;
+            //goButton.Text = isLoading ?
+            //    "Stop" :
+            //    "Go";
+            //goButton.Image = isLoading ?
+            //    Properties.Resources.nav_plain_red :
+            //    Properties.Resources.nav_plain_green;
 
             ready = !isLoading;
-            HandleToolStripLayout();
+            //HandleToolStripLayout();
         }
 
         public void DisplayOutput(string output)
@@ -113,15 +113,15 @@ namespace CefSharp.MinimalExample.WinForms
 
         private void HandleToolStripLayout()
         {
-            var width = toolStrip1.Width;
-            foreach (ToolStripItem item in toolStrip1.Items)
-            {
-                if (item != urlTextBox)
-                {
-                    width -= item.Width - item.Margin.Horizontal;
-                }
-            }
-            urlTextBox.Width = Math.Max(0, width - urlTextBox.Margin.Horizontal - 18);
+            //var width = toolStrip1.Width;
+            //foreach (ToolStripItem item in toolStrip1.Items)
+            //{
+            //    if (item != urlTextBox)
+            //    {
+            //        width -= item.Width - item.Margin.Horizontal;
+            //    }
+            //}
+            //urlTextBox.Width = Math.Max(0, width - urlTextBox.Margin.Horizontal - 18);
         }
 
         private void ExitMenuItemClick(object sender, EventArgs e)
@@ -133,7 +133,7 @@ namespace CefSharp.MinimalExample.WinForms
 
         private void GoButtonClick(object sender, EventArgs e)
         {
-            LoadUrl(urlTextBox.Text);
+            //LoadUrl(urlTextBox.Text);
         }
 
         private void BackButtonClick(object sender, EventArgs e)
@@ -153,7 +153,7 @@ namespace CefSharp.MinimalExample.WinForms
                 return;
             }
 
-            LoadUrl(urlTextBox.Text);
+            //LoadUrl(urlTextBox.Text);
         }
 
         private void LoadUrl(string url)
@@ -210,6 +210,8 @@ namespace CefSharp.MinimalExample.WinForms
 
         private void btnInit_Click(object sender, EventArgs e)
         {
+            browser.BringToFront();            
+
             lblStatus.Text = "Autorizando donaciones...";
             lblStatus.ForeColor = Color.Yellow;            
             
@@ -251,6 +253,8 @@ namespace CefSharp.MinimalExample.WinForms
             lblStatus.Text = "Proceso de autorización de donaciones finalizado";
             lblStatus.ForeColor = Color.Black;
             browser.Load("about:blanck");
+
+            browser.Visible = false;
         }
 
         private bool ProcessDonations(int index)
