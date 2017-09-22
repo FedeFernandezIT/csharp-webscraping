@@ -210,6 +210,7 @@ namespace CefSharp.MinimalExample.WinForms
 
         private void btnInit_Click(object sender, EventArgs e)
         {
+            browser.Visible = true;
             browser.BringToFront();            
 
             lblStatus.Text = "Autorizando donaciones...";
